@@ -1,0 +1,12 @@
+[
+  {
+    "id": "608eab18-05a5-4f03-a6c6-eb06e36f2b6d",
+    "parent": null,
+    "name": "Vehicle"
+  },
+  {
+    "id": "00d55315-cf9c-456e-bbf6-9360a10f8a2f",
+    "parent": "'608eab18-05a5-4f03-a6c6-eb06e36f2b6d'",
+    "name": "Car"
+  }
+]

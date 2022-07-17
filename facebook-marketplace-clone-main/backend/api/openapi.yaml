@@ -1,0 +1,408 @@
+#
+# CSE183 Assignment 8 Backend
+#
+
+openapi: '3.0.3'
+
+info:
+  description: CSE183 Assignment 8 Backend
+  version: 0.1.0
+  title: CSE183 Assignment 8 Backend
+
+servers:
+  - url: http://localhost:3010/v0
+
+paths:
+  /dummy:
+    get:
+      description: Dummy Endpoint
+      responses:
+        200:
+          description: Succesful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DummyResponse'
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /search:
+    get:
+      description: Search for all listings by keyword
+      parameters:
+        - name: keyword
+          in: query
+          description: Keyword of listing
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Succesful retrieval of listing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListingResponse'
+        404:
+          description: Listing not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /userListing:
+    get:
+      description: returns user's listings
+      parameters:
+        - name: users_id
+          in: query
+          description: ID of user
+          required: false
+          schema:
+            type: string
+            format: uuid
+      security: 
+        - bearerAuth: []
+      responses:
+        200:
+          description: successful retrieval of user listings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListingResponse'
+        401:
+          description: Access token is missing
+        403: 
+          description: Forbidden not allowed
+        404:
+          description: user not found
+
+  /listing:
+    get:
+      description: Search for all listings
+      parameters:
+        - name: category
+          in: query
+          description: ID of category
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: keyword
+          in: query
+          description: Keyword of listing
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: Succesful retrieval of listing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListingResponse'
+        404:
+          description: Listing not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      description: Creat new listing 
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewListing'
+      security: 
+        - bearerAuth: []
+      responses: 
+        201:
+          description: Successful added Listing
+          content: 
+            application/json:
+              schema: 
+                $ref: '#/components/schemas/Listing'
+        401: 
+          description: Access token is missing
+        403: 
+          description: Access token is invalid
+        404:
+          description: Database not responding with request
+  /category:
+    get:
+      description: Search for all listings under specific category
+      parameters:
+        - name: parent
+          in: query
+          description: ID of parent category
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Succesful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryResponse'
+        404:
+          description: Category not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+                
+  /filter:
+    get:
+      description: Search for all filters
+      parameters:
+        - name: category
+          in: query
+          description: ID of category
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Succesful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilterResponse'
+        404:
+          description: Filter not found
+        default:
+          description: unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          
+
+# # # # # # 
+#
+#  Authenicated Endpoints
+#
+# # # # # # 
+  /login:
+    post:
+      description: Checks if user is valid and returns access token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Login'
+      responses:
+        201:
+          description: Sucessfully logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessToken'
+        401:
+          description: Username or password is not correct 
+      
+  /signUp:
+    post:
+      description: Route to sign in users 
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUp'
+      responses:
+        200:
+          description: Successfully created user
+        409: 
+          description: user already exists
+
+
+components:
+  schemas:
+    Error:
+      properties:
+        code:
+          type: integer
+          format: int32
+        message:
+          type: string
+      required:
+        - code
+        - message
+
+    DummyResponse:
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    ListingResponse:
+      type: array
+      items: 
+        $ref: '#/components/schemas/Listing'     
+    Listing:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        category_id:
+          type: string
+          format: uuid
+        content:
+          $ref: '#/components/schemas/ListingContent'
+    NewListing:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        category_id:
+          type: string
+          format: uuid
+        content:
+          $ref: '#/components/schemas/ListingContent'
+      required:
+        - user_id
+        - category_id
+        - content
+                
+    ListingContent:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        imageLink:
+          type: string
+          format: url
+        username:
+          type: string
+        created:
+          type: string
+      # required: 
+      #   - title
+      #   - imageLink
+      #   - username
+      #   - created
+
+
+    CategoryResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/Category'
+
+    Category:
+      type: object
+      properties:
+        name:
+          type: string
+        id:
+          type: string
+          format: uuid
+        filter:
+          $ref: '#/components/schemas/Filters'
+          
+    FilterResponse:
+      type: array
+      items:
+        $ref: '#/components/schemas/FilterObject'
+
+    FilterObject:
+      type: object
+      properties:
+        filter_id:
+          type: string
+          format: uuid
+        category_id:
+          type: string
+          format: uuid
+        filters:
+          $ref: '#/components/schemas/Filters'
+      
+    Filters:
+      type: object
+      properties:
+        make:
+          type: string
+        type:
+          type: string
+        color:
+          type: string
+        mileage:
+          type: string
+        bedrooms:
+          type: string
+        bathrooms:
+          type: string
+        sqFootage:
+          type: string
+        pool:
+          type: string
+        garage:
+          type: string
+      
+    Login: 
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string 
+      required:
+        - email
+        - password 
+    SignUp:
+      allOf:
+        - $ref: '#/components/schemas/Login'
+        - type: object
+          properties: 
+            name:
+              type: string
+            phone:
+              type: string
+      required:
+        - name 
+        - email
+        - password
+        - phone
+    AccessToken:
+      type: object
+      properties:
+        id: 
+          type: string
+          format: uuid
+        name:
+          type: string
+        accessToken:
+          type: string
+      required: 
+        - id 
+        - name
+        - accessToken
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    UnauthorizedError:
+      description: Access token is missing or invalid
