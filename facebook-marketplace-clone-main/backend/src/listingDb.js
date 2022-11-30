@@ -82,7 +82,7 @@ exports.insertListing = async (categoryId, userID, info) => {
   };
   try {
     const {rows} = await pool.query(query);
-    rows[0].user_id = rows[0].users_id;
+    rows[0].user_id = rows[0].users_id; // user_id !== users_id 
     delete rows[0].users_id;
     rows[0].content = rows[0].listing;
     delete rows[0].listing;
